@@ -1,0 +1,5 @@
+.ansible
+**/*.local.yml
+**/.env
+**/.env*
+secrets.env
