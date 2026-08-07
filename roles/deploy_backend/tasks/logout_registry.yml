@@ -1,0 +1,5 @@
+- name: Log out of the container registry
+  ansible.builtin.shell: docker logout "{{ deploy_backend_registry_host }}"
+  args:
+    executable: /bin/bash
+  changed_when: false

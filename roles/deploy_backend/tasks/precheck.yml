@@ -1,0 +1,55 @@
+- name: Fail early if the control node secrets are not exported
+  ansible.builtin.assert:
+    that:
+      - deploy_backend_registry_user | length > 0
+      - deploy_backend_registry_token | length > 0
+      - deploy_backend_db_root_password | length > 0
+    fail_msg: >-
+      Export MHG_REGISTRY_USER, MHG_REGISTRY_TOKEN and MHG_DB_ROOT_PASSWORD before running
+      this playbook. From the repository root: set -a; source secrets.env; set +a
+
+- name: Check Docker Engine is present
+  ansible.builtin.command: docker info
+  register: deploy_backend_docker_check
+  changed_when: false
+  failed_when: false
+
+- name: Fail early if Docker Engine is missing
+  ansible.builtin.fail:
+    msg: >-
+      Docker Engine is not usable by {{ ansible_user }} on {{ inventory_hostname }}.
+      Install it, or add the user to the docker group.
+  when: deploy_backend_docker_check.rc != 0
+
+- name: Check Docker Compose plugin is present
+  ansible.builtin.command: docker compose version
+  register: deploy_backend_compose_check
+  changed_when: false
+  failed_when: false
+
+- name: Fail early if Docker Compose is missing
+  ansible.builtin.fail:
+    msg: "docker compose plugin not found on {{ inventory_hostname }}; every deploy task needs it"
+  when: deploy_backend_compose_check.rc != 0
+
+- name: Check the public port is free or already held by this stack
+  ansible.builtin.shell: |
+    set -o pipefail
+    if ss -ltn "sport = :{{ deploy_backend_public_port }}" | tail -n +2 | grep -q .; then
+      docker ps --filter name=mhg-lb --filter status=running --format '{{ '{{' }}.Names{{ '}}' }}'
+    else
+      echo mhg-lb
+    fi
+  args:
+    executable: /bin/bash
+  register: deploy_backend_port_check
+  changed_when: false
+  failed_when: false
+
+- name: Fail early if another process already holds the public port
+  ansible.builtin.fail:
+    msg: >-
+      Port {{ deploy_backend_public_port }} on {{ inventory_hostname }} is taken by something
+      other than this stack's load balancer. Free it or set deploy_backend_public_port.
+  when: deploy_backend_port_check.stdout != "mhg-lb"
+  

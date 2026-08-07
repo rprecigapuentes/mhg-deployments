@@ -1,0 +1,90 @@
+services:
+  mysql:
+    image: mysql:8.4.11
+    container_name: mhg-db
+    restart: unless-stopped
+    command: --lower-case-table-names=1
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:?DB_ROOT_PASSWORD is required}
+      MYSQL_DATABASE: ${DB_NAME:-monster_hunter_guild}
+    volumes:
+      - mhg_db_data:/var/lib/mysql
+    networks:
+      - mhg_net
+    healthcheck:
+      test:
+        [
+          'CMD',
+          'mysqladmin',
+          'ping',
+          '-h',
+          '127.0.0.1',
+          '--protocol=TCP',
+          '-u',
+          'root',
+          '-p${DB_ROOT_PASSWORD}',
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 60s
+
+  blue-api:
+    image: ${IMAGE_NAME:?IMAGE_NAME is required}:${VERSION_BLUE:?VERSION_BLUE is required}
+    container_name: mhg-api-blue
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      APP_PORT: 3000
+      DATABASE_HOST: mysql
+      DATABASE_PORT: 3306
+      DATABASE_USER: root
+      DATABASE_PASSWORD: ${DB_ROOT_PASSWORD:?DB_ROOT_PASSWORD is required}
+      DATABASE_NAME: ${DB_NAME:-monster_hunter_guild}
+      DATABASE_URL: mysql://root:${DB_ROOT_PASSWORD}@mysql:3306/${DB_NAME:-monster_hunter_guild}
+    ports:
+      - '127.0.0.1:${APP_PORT_BLUE:-3001}:3000'
+    networks:
+      - mhg_net
+
+  green-api:
+    image: ${IMAGE_NAME:?IMAGE_NAME is required}:${VERSION_GREEN:?VERSION_GREEN is required}
+    container_name: mhg-api-green
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      APP_PORT: 3000
+      DATABASE_HOST: mysql
+      DATABASE_PORT: 3306
+      DATABASE_USER: root
+      DATABASE_PASSWORD: ${DB_ROOT_PASSWORD:?DB_ROOT_PASSWORD is required}
+      DATABASE_NAME: ${DB_NAME:-monster_hunter_guild}
+      DATABASE_URL: mysql://root:${DB_ROOT_PASSWORD}@mysql:3306/${DB_NAME:-monster_hunter_guild}
+    ports:
+      - '127.0.0.1:${APP_PORT_GREEN:-3002}:3000'
+    networks:
+      - mhg_net
+
+  lb:
+    image: nginx:1.31.1-alpine-slim
+    container_name: mhg-lb
+    restart: unless-stopped
+    ports:
+      - '${PUBLIC_PORT:-5000}:80'
+    networks:
+      - mhg_net
+
+volumes:
+  mhg_db_data:
+    name: mhg_db_data
+
+networks:
+  mhg_net:
+    name: mhg_net
+    driver: bridge
