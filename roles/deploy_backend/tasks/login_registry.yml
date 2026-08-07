@@ -1,0 +1,12 @@
+- name: Log in to the container registry
+  ansible.builtin.shell: |
+    set -o pipefail
+    echo "{{ deploy_backend_registry_token }}" | \
+      docker login "{{ deploy_backend_registry_host }}" \
+        -u "{{ deploy_backend_registry_user }}" \
+        --password-stdin
+  args:
+    executable: /bin/bash
+  register: deploy_backend_login
+  changed_when: false
+  #no_log: true

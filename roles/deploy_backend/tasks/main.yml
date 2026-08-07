@@ -1,0 +1,20 @@
+- name: Check prerequisites
+  ansible.builtin.import_tasks: precheck.yml
+
+- name: Copy files
+  ansible.builtin.import_tasks: copy_files.yml
+
+- name: Render templates
+  ansible.builtin.import_tasks: render_templates.yml
+
+- name: Log in to the container registry
+  ansible.builtin.import_tasks: login_registry.yml
+
+- name: Deploy the idle colour
+  ansible.builtin.import_tasks: deploy.yml
+
+- name: Switch traffic
+  ansible.builtin.import_tasks: switch_traffic.yml
+
+- name: Log out of the container registry
+  ansible.builtin.import_tasks: logout_registry.yml

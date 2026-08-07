@@ -1,0 +1,16 @@
+deploy_backend_dir: /opt/mhg
+deploy_backend_image_name: registry.gitlab.com/jalau-bootcamps/bc-lt-at-fs-05/monster-hunter-guild
+
+deploy_backend_db_name: monster_hunter_guild
+deploy_backend_public_port: 5000
+deploy_backend_port_blue: 3001
+deploy_backend_port_green: 3002
+
+deploy_backend_health_path: /guilds
+deploy_backend_health_retries: 30
+deploy_backend_health_delay: 3
+
+deploy_backend_registry_host: registry.gitlab.com
+deploy_backend_registry_user: "{{ lookup('env', 'MHG_REGISTRY_USER') }}"
+deploy_backend_registry_token: "{{ lookup('env', 'MHG_REGISTRY_TOKEN') }}"
+deploy_backend_db_root_password: "{{ lookup('env', 'MHG_DB_ROOT_PASSWORD') }}"
