@@ -13,6 +13,14 @@
   ansible.builtin.include_tasks:
     login_registry.yml  
 
+- name: deploy the Compose stack
+  ansible.builtin.include_tasks:
+    deploy.yml
+
+- name: switch to the new stack
+  ansible.builtin.include_tasks:
+    switch_traffic.yml
+
 - name: logout of the container registry
   ansible.builtin.include_tasks:
     logout_registry.yml  

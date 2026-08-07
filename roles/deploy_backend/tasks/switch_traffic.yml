@@ -1,0 +1,42 @@
+- name: Wait for the {{ deploy_backend_active_env }} API to answer from the database
+  ansible.builtin.uri:
+    url: >-
+      http://127.0.0.1:{{ deploy_backend_port_blue if deploy_backend_active_env == 'blue'
+      else deploy_backend_port_green }}{{ deploy_backend_health_path }}
+    status_code: 200
+  register: deploy_backend_health
+  until: deploy_backend_health.status == 200
+  retries: "{{ deploy_backend_health_retries }}"
+  delay: "{{ deploy_backend_health_delay }}"
+  changed_when: false
+
+- name: Render nginx.conf pointing at {{ deploy_backend_active_env }}
+  ansible.builtin.template:
+    src: nginx.conf.j2
+    dest: "{{ deploy_backend_dir }}/nginx.conf"
+    mode: '0644'
+  register: deploy_backend_nginx_conf
+
+- name: Read back the colour the load balancer is serving right now
+  ansible.builtin.shell: |
+    set -o pipefail
+    docker exec mhg-lb cat /etc/nginx/nginx.conf | grep -oE '(blue|green)-api' | head -1
+  args:
+    executable: /bin/bash
+  register: deploy_backend_live_colour
+  changed_when: false
+  failed_when: false
+
+- name: Switch traffic to {{ deploy_backend_active_env }}
+  ansible.builtin.shell: |
+    set -e
+    docker compose -f {{ deploy_backend_dir }}/compose.yml cp {{ deploy_backend_dir }}/nginx.conf lb:/etc/nginx/nginx.conf
+    docker compose -f {{ deploy_backend_dir }}/compose.yml exec -T lb nginx -t
+    docker compose -f {{ deploy_backend_dir }}/compose.yml exec -T lb nginx -s reload
+  args:
+    chdir: "{{ deploy_backend_dir }}"
+    executable: /bin/bash
+  when:
+    - deploy_backend_nginx_conf.changed
+      or deploy_backend_live_colour.stdout != deploy_backend_active_env ~ '-api'
+  changed_when: true

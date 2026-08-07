@@ -1,0 +1,26 @@
+- name: Pull the image tagged for the {{ deploy_backend_active_env }} environment
+  ansible.builtin.shell: |
+    docker compose -f {{ deploy_backend_dir }}/compose.yml pull {{ deploy_backend_active_env }}-api
+  args:
+    chdir: "{{ deploy_backend_dir }}"
+    executable: /bin/bash
+  changed_when: false
+
+- name: Check whether the {{ deploy_backend_active_env }} container is already running
+  ansible.builtin.command:
+    cmd: docker ps --filter name=mhg-api-{{ deploy_backend_active_env }} --filter status=running --format "{{ '{{' }}.Names{{ '}}' }}"
+  register: deploy_backend_colour_status
+  changed_when: false
+  failed_when: false
+
+- name: Start the database, the load balancer and the {{ deploy_backend_active_env }} API
+  ansible.builtin.shell: |
+    docker compose -f {{ deploy_backend_dir }}/compose.yml up -d mysql lb {{ deploy_backend_active_env }}-api
+  args:
+    chdir: "{{ deploy_backend_dir }}"
+    executable: /bin/bash
+  when:
+    - deploy_backend_compose_file.changed
+      or deploy_backend_env_file.changed
+      or deploy_backend_colour_status.stdout != "mhg-api-" ~ deploy_backend_active_env
+  changed_when: true
