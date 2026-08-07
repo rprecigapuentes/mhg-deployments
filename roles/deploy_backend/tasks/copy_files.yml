@@ -9,7 +9,6 @@
     state: directory
     mode: '0755'
     owner: "{{ ansible_user }}"
-    group: "{{ ansible_user }}"
   when: not deploy_backend_dir_stat.stat.exists
 
 - name: Copy the Compose stack definition
