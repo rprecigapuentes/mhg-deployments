@@ -1,0 +1,11 @@
+- name: Deploy Monster Hunter Guild API to Development
+  hosts: development
+  gather_facts: false
+  become: false
+
+  roles:
+    - role: deploy_backend
+      vars:
+        deploy_backend_active_env: blue
+        deploy_backend_version_blue: "v1.2.0"
+        deploy_backend_version_green: "v1.2.0"

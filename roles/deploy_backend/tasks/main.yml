@@ -1,0 +1,2 @@
+- name: precheck
+  ansible.builtin.include_tasks: precheck.yml
