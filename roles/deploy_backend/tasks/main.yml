@@ -1,2 +1,6 @@
 - name: precheck
   ansible.builtin.include_tasks: precheck.yml
+
+- name: copy files
+  ansible.builtin.include_tasks:
+    copy_files.yml
