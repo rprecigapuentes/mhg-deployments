@@ -1,0 +1,6 @@
+- name: Render the Compose environment file
+  ansible.builtin.template:
+    src: env.j2
+    dest: "{{ deploy_backend_dir }}/.env"
+    mode: '0640'
+  register: deploy_backend_env_file
