@@ -1,26 +1,20 @@
-- name: precheck
-  ansible.builtin.include_tasks: precheck.yml
+- name: Check prerequisites
+  ansible.builtin.import_tasks: precheck.yml
 
-- name: copy files
-  ansible.builtin.include_tasks:
-    copy_files.yml
+- name: Copy files
+  ansible.builtin.import_tasks: copy_files.yml
 
-- name: render templates
-  ansible.builtin.include_tasks:
-    render_templates.yml
+- name: Render templates
+  ansible.builtin.import_tasks: render_templates.yml
 
-- name: login to the container registry
-  ansible.builtin.include_tasks:
-    login_registry.yml  
+- name: Log in to the container registry
+  ansible.builtin.import_tasks: login_registry.yml
 
-- name: deploy the Compose stack
-  ansible.builtin.include_tasks:
-    deploy.yml
+- name: Deploy the idle colour
+  ansible.builtin.import_tasks: deploy.yml
 
-- name: switch to the new stack
-  ansible.builtin.include_tasks:
-    switch_traffic.yml
+- name: Switch traffic
+  ansible.builtin.import_tasks: switch_traffic.yml
 
-- name: logout of the container registry
-  ansible.builtin.include_tasks:
-    logout_registry.yml  
+- name: Log out of the container registry
+  ansible.builtin.import_tasks: logout_registry.yml
