@@ -1,0 +1,23 @@
+# Syntax check of every playbook on each push. The plays themselves target a real host and need
+# secrets from the control node's environment, so they are not run here.
+name: Ansible
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  syntax-check:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install ansible-core
+      - name: Check the playbooks
+        run: |
+          for book in deploy_backend_dev.yml; do
+            ansible-playbook --syntax-check -i localhost, "$book"
+          done

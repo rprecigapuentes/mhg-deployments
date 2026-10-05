@@ -2,6 +2,10 @@
 
 Ansible role that deploys the Monster Hunter Guild API with a blue/green strategy behind nginx. Only `ansible.builtin` modules are used.
 
+[![Ansible](https://github.com/rprecigapuentes/mhg-deployments/actions/workflows/ansible.yml/badge.svg)](https://github.com/rprecigapuentes/mhg-deployments/actions/workflows/ansible.yml)
+
+Built for the DevOps module of the Jalasoft Software Automation Testing Bootcamp (2026) to deploy the [Monster Hunter Guild API](https://github.com/rprecigapuentes/monster-hunter-guild-api). Author: Rosemberth Preciga ([@rprecigapuentes](https://github.com/rprecigapuentes)).
+
 ## deploy_backend
 
 Deploys the API plus its MySQL database as a Docker Compose stack in `/opt/mhg`. Two colours, `blue` and `green`, run side by side with independently pinned image tags. nginx serves the public port and proxies to whichever colour is active, so a new version is started on the idle colour, verified, and only then given traffic. The previous colour keeps running for rollback.
